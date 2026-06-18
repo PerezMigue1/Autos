@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 from flask import Flask, Response, render_template, request, send_file
+from joblib import dump
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
@@ -19,6 +20,7 @@ from sklearn.preprocessing import OrdinalEncoder
 app = Flask(__name__)
 
 DATA_PATH = "processes2.csv"
+MODEL_PATH = "model/modelo_autos.pkl"
 TARGET = "selling_price"
 FEATURES = [
     "max_power (in bph)",
@@ -146,6 +148,8 @@ def build_model():
     charts = save_model_charts(y_test, predictions, metrics)
 
     model.fit(x, y)
+    os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+    dump(model, MODEL_PATH)
     return df, model, metrics, charts
 
 

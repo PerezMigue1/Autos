@@ -18,4 +18,4 @@ python app.py
    - Start Command: `gunicorn app:app`
 4. Publica el servicio.
 
-La app entrena el modelo al iniciar, muestra metricas de evaluacion, permite descargar resultados y predice el precio de venta con los datos del formulario.
+La app entrena el modelo al iniciar, guarda el modelo entrenado en `model/modelo_autos.pkl`, muestra metricas de evaluacion, permite descargar resultados y predice el precio de venta con los datos del formulario.
