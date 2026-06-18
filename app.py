@@ -101,7 +101,7 @@ def save_model_charts(y_test, predictions, metrics):
 def build_model():
     df = pd.read_csv(DATA_PATH, index_col=0)
     numeric_cols = df.select_dtypes(include="number").columns
-    text_cols = df.select_dtypes(include="object").columns
+    text_cols = df.select_dtypes(include=["object", "string"]).columns
 
     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
     df[text_cols] = df[text_cols].fillna(df[text_cols].mode().iloc[0])
@@ -244,4 +244,4 @@ def download_excel():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5055)
+    app.run(debug=False, port=5055, use_reloader=False)

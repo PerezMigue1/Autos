@@ -3,101 +3,124 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Prediccion de Precio de Autos</title>
+  <title>Estimador de Precio Vehicular</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-  <main class="shell">
-    <section class="panel">
-      <header class="intro">
-        <h1>Prediccion de Precio de Autos</h1>
-        <p>
-          Esta aplicacion usa un modelo de regresion con Random Forest para estimar el
-          <strong>selling_price</strong> de un vehiculo con base en 6 variables del dataset.
-        </p>
-      </header>
-
-      <section class="metrics" aria-label="Metricas del modelo">
-        <article class="metric-card">
-          <span>R2 promedio CV=7</span>
-          <strong>{{ "%.4f"|format(metrics.r2_cv) }}</strong>
-          <small>Mayor a 0.80 indica buen desempeno del modelo.</small>
-        </article>
-        <article class="metric-card">
-          <span>MAE promedio CV=7</span>
-          <strong>{{ "{:,.2f}".format(metrics.mae_cv) }}</strong>
-          <small>Error promedio en pesos del precio estimado.</small>
-        </article>
-        <article class="metric-card">
-          <span>R2 corrida independiente</span>
-          <strong>{{ "%.3f"|format(metrics.r2_split) }}</strong>
-          <small>Evaluacion 80/20 para referencia.</small>
-        </article>
-      </section>
-
-      <section class="charts" aria-label="Graficas del modelo">
-        <article class="chart-card">
-          <h2>Valores reales vs predicciones</h2>
-          <img src="{{ url_for('static', filename=charts.scatter) }}" alt="Grafica de valores reales contra predicciones">
-        </article>
-        <article class="chart-card">
-          <h2>Distribucion de residuos</h2>
-          <img src="{{ url_for('static', filename=charts.residuals) }}" alt="Histograma de residuos del modelo">
-        </article>
-      </section>
-
-      <div class="downloads">
-        <a href="{{ url_for('download_excel') }}">Descargar Excel</a>
-        <a href="{{ url_for('download_csv') }}">Descargar CSV</a>
+  <main class="app-layout">
+    <header class="topbar">
+      <div>
+        <span class="eyebrow">Modelo de regresion</span>
+        <h1>Estimador de precio vehicular</h1>
       </div>
+      <div class="model-badge">
+        <span>Random Forest</span>
+        <strong>CV=7</strong>
+      </div>
+    </header>
 
-      <form method="post" class="prediction-form">
-        <label>
-          Marca
-          <select name="name" required>
-            {% for brand in brands %}
-              <option value="{{ brand }}" {% if form_values.name == brand %}selected{% endif %}>{{ brand }}</option>
-            {% endfor %}
-          </select>
-        </label>
+    <section class="summary-strip" aria-label="Metricas del modelo">
+      <article>
+        <span>R2 promedio</span>
+        <strong>{{ "%.4f"|format(metrics.r2_cv) }}</strong>
+        <small>Validacion cruzada</small>
+      </article>
+      <article>
+        <span>MAE promedio</span>
+        <strong>${{ "{:,.0f}".format(metrics.mae_cv) }}</strong>
+        <small>Error medio absoluto</small>
+      </article>
+      <article>
+        <span>R2 80/20</span>
+        <strong>{{ "%.3f"|format(metrics.r2_split) }}</strong>
+        <small>Corrida independiente</small>
+      </article>
+    </section>
 
-        <label>
-          Ano del vehiculo
-          <input name="year" type="number" min="2000" max="2026" step="1" value="{{ form_values.year }}" placeholder="Ejemplo: 2017" required>
-        </label>
+    <section class="workspace">
+      <aside class="control-panel">
+        <div class="section-heading">
+          <span>Entrada</span>
+          <h2>Datos del auto</h2>
+        </div>
 
-        <label>
-          Kilometraje
-          <input name="km_driven" type="number" min="0" step="100" value="{{ form_values.km_driven }}" placeholder="Ejemplo: 45000" required>
-        </label>
+        <form method="post" class="prediction-form">
+          <label>
+            Marca
+            <select name="name" required>
+              {% for brand in brands %}
+                <option value="{{ brand }}" {% if form_values.name == brand %}selected{% endif %}>{{ brand }}</option>
+              {% endfor %}
+            </select>
+          </label>
 
-        <label>
-          Potencia maxima (bhp)
-          <input name="max_power" type="number" min="0" step="0.01" value="{{ form_values.max_power }}" placeholder="Ejemplo: 81.86" required>
-        </label>
+          <label>
+            Ano del vehiculo
+            <input name="year" type="number" min="2000" max="2026" step="1" value="{{ form_values.year }}" placeholder="2017" required>
+          </label>
 
-        <label>
-          Rendimiento
-          <input name="mileage" type="number" min="0" step="0.01" value="{{ form_values.mileage }}" placeholder="Ejemplo: 20.14" required>
-        </label>
+          <label>
+            Kilometraje
+            <input name="km_driven" type="number" min="0" step="100" value="{{ form_values.km_driven }}" placeholder="45000" required>
+          </label>
 
-        <label>
-          Motor (CC)
-          <input name="engine" type="number" min="0" step="1" value="{{ form_values.engine }}" placeholder="Ejemplo: 1197" required>
-        </label>
+          <label>
+            Potencia maxima (bhp)
+            <input name="max_power" type="number" min="0" step="0.01" value="{{ form_values.max_power }}" placeholder="81.86" required>
+          </label>
 
-        <button type="submit">Predecir precio</button>
-      </form>
+          <label>
+            Rendimiento
+            <input name="mileage" type="number" min="0" step="0.01" value="{{ form_values.mileage }}" placeholder="20.14" required>
+          </label>
 
-      {% if prediction is not none %}
-        <section class="prediction-result" aria-live="polite">
-          <span>Precio estimado</span>
-          <strong>${{ "{:,.2f}".format(prediction) }}</strong>
-        </section>
-      {% endif %}
+          <label>
+            Motor (CC)
+            <input name="engine" type="number" min="0" step="1" value="{{ form_values.engine }}" placeholder="1197" required>
+          </label>
+
+          <button type="submit">Calcular precio</button>
+        </form>
+
+        {% if prediction is not none %}
+          <section class="prediction-result" aria-live="polite">
+            <span>Precio estimado</span>
+            <strong>${{ "{:,.2f}".format(prediction) }}</strong>
+          </section>
+        {% endif %}
+
+        <div class="downloads">
+          <a href="{{ url_for('download_excel') }}">Excel</a>
+          <a href="{{ url_for('download_csv') }}">CSV</a>
+        </div>
+      </aside>
+
+      <section class="analysis-panel">
+        <div class="section-heading">
+          <span>Evaluacion</span>
+          <h2>Comportamiento del modelo</h2>
+        </div>
+
+        <div class="chart-grid" aria-label="Graficas del modelo">
+          <article class="chart-card">
+            <div>
+              <span>Grafica 1</span>
+              <h3>Valores reales vs predicciones</h3>
+            </div>
+            <img src="{{ url_for('static', filename=charts.scatter) }}" alt="Grafica de valores reales contra predicciones">
+          </article>
+          <article class="chart-card">
+            <div>
+              <span>Grafica 2</span>
+              <h3>Distribucion de residuos</h3>
+            </div>
+            <img src="{{ url_for('static', filename=charts.residuals) }}" alt="Histograma de residuos del modelo">
+          </article>
+        </div>
+      </section>
     </section>
   </main>
 </body>
